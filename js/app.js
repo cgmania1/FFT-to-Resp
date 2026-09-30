@@ -156,20 +156,7 @@
   function viewFrf() {
     var f = state.frfFile;
     var wrap = el('div');
-    /*
-     * [UI UPDATE v2] 첫 화면만큼은 "무엇을 하는 도구인가"를 즉시 이해할 수 있도록
-     * 기술형 hero 영역을 추가했습니다. 계산 로직/상태 저장과 무관한 표현 계층입니다.
-     */
-    wrap.appendChild(el('section', { class: 'hero-card' },
-      el('div', { class: 'hero-eyebrow' }, 'FRF → RPM RESPONSE ANALYSIS'),
-      el('h2', null, '주파수영역 해석 결과를 RPM 응답으로 바로 연결합니다.'),
-      el('p', null, 'FRF 해석 결과와 차수별 가진력을 입력하면 회전수 변화에 따른 응답 곡선을 빠르게 확인하고, 계측 결과가 있으면 역으로 가진력을 추정할 수 있습니다.'),
-      el('div', { class: 'hero-metrics', 'aria-label': '핵심 기능' },
-        el('div', { class: 'hero-metric' }, el('b', null, 'FRF × Force'), el('span', null, '차수별 응답 계산')),
-        el('div', { class: 'hero-metric' }, el('b', null, 'Order RSS'), el('span', null, 'overall 합성 검토')),
-        el('div', { class: 'hero-metric' }, el('b', null, 'Measured → Force'), el('span', null, '계측 기반 가진력 추정'))
-      )
-    ));
+    wrap.appendChild(hero());
     wrap.appendChild(el('div', { class: 'page-head' }, el('h1', null, '1. FRF 해석 결과 불러오기')));
     wrap.appendChild(steps());
     wrap.appendChild(el('section', { class: 'card' },
@@ -222,6 +209,23 @@
 
     if (state.frf) wrap.appendChild(frfSummaryCard());
     return wrap;
+  }
+  // 첫 화면 — 도구가 하는 일 + 응답 계산 개념도 (2026-09-30 수강생 디자인 시안 반영, 개념도는 js/hero.js)
+  function hero() {
+    var start = state.frf
+      ? el('a', { class: 'btn btn-hero', href: '#/calc' }, '다음: 계산 조건')
+      : el('button', { type: 'button', class: 'btn btn-hero', onclick: loadSample }, '예시 데이터로 둘러보기');
+    return el('section', { class: 'hero-card', 'aria-labelledby': 'heroTitle' },
+      el('div', { class: 'hero-copy' },
+        el('p', { class: 'hero-eyebrow' }, 'FRF → RPM RESPONSE ANALYSIS'),
+        el('h2', { id: 'heroTitle' }, '주파수영역 해석 결과를 ', el('span', { class: 'nowrap' }, 'RPM 응답으로'), ' 바로 연결합니다.'),
+        el('p', { class: 'hero-lead' }, 'FRF 해석 결과와 차수별 가진력을 넣으면 회전수에 따른 응답 곡선을 바로 확인합니다. 계측 결과가 있으면 거꾸로 가진력을 추정합니다.'),
+        el('div', { class: 'hero-cta' }, start, el('a', { class: 'btn btn-hero-ghost', href: '#/help' }, '계산 방법 보기')),
+        el('ul', { class: 'hero-metrics', 'aria-label': '핵심 기능' },
+          el('li', { class: 'hero-metric' }, el('b', null, 'FRF × Force'), el('span', null, '차수별 응답 계산')),
+          el('li', { class: 'hero-metric' }, el('b', null, 'Order RSS'), el('span', null, 'overall 합성 검토')),
+          el('li', { class: 'hero-metric' }, el('b', null, 'Measured → Force'), el('span', null, '계측 기반 가진력 추정')))),
+      window.FRFHero ? window.FRFHero.build() : null);
   }
   function buildFrf() {
     var info = fileRowsInfo(state.frfFile);
@@ -479,8 +483,9 @@
   }
 
   // ── 3. 결과 ─────────────────────────────────────────────────
-  /* UI UPDATE v2 — 결과 그래프의 계열 색을 기술형 팔레트로 통일합니다. 계산값에는 영향이 없습니다. */
-  var COLORS = ['#0a88a8', '#ef7d56', '#6e7ad9', '#16866c', '#c26aab', '#e39b2f', '#6c8191', '#2e6f95'];
+  // 계열 색 — 수강생 시안(2026-09-30)의 기술형 팔레트. 흰 바탕 대비 3:1 이상으로 맞춤(amber 는 어둡게)
+  var COLORS = ['#0a88a8', '#d9603a', '#5a66cf', '#16866c', '#b0579a', '#b7791f', '#5f7484', '#2e6f95'];
+  var OVERALL = '#0b1d2d';
   function ensureResult() {
     if (result) return true;
     var c = configFromSettings();
@@ -554,7 +559,7 @@
   function chart(p, orders) {
     var W = 900, H = 420, m = { l: 74, r: 18, t: 18, b: 52 };
     var series = orders.map(function (o, k) { return { name: o.order + '차', color: COLORS[k % COLORS.length], width: 2, pts: p.rows.map(function (r) { return [r.rpm, r.comps[k].resp]; }) }; });
-    series.push({ name: 'overall', color: '#111', width: 3.5, pts: p.rows.map(function (r) { return [r.rpm, r.overall]; }) });
+    series.push({ name: 'overall', color: OVERALL, width: 3.5, pts: p.rows.map(function (r) { return [r.rpm, r.overall]; }) });
     var xs = p.rows.map(function (r) { return r.rpm; });
     var ys = [];
     series.forEach(function (s) { s.pts.forEach(function (q) { if (q[1] != null && isFinite(q[1]) && (!ui.logY || q[1] > 0)) ys.push(q[1]); }); });
@@ -1027,7 +1032,7 @@
     if (ui.fitPoint >= pts.length) ui.fitPoint = 0;
     var pname = pts[ui.fitPoint], cSeries = [];
     (f.objective === 'overall' ? ['overall'] : f.orders).forEach(function (k, i) {
-      var color = k === 'overall' ? '#111' : COLORS[i % COLORS.length], lab = k === 'overall' ? 'overall' : k + '차';
+      var color = k === 'overall' ? OVERALL : COLORS[i % COLORS.length], lab = k === 'overall' ? 'overall' : k + '차';
       var mine = f.obs.filter(function (o) { return o.point === pname && o.order === k; }).sort(function (a, b) { return a.rpm - b.rpm; });
       cSeries.push({ name: lab + ' 계산', color: color, width: 2.5, pts: mine.map(function (o) { return [o.rpm, o.calc]; }) });
       cSeries.push({ name: lab + ' 계측', color: color, width: 0, pts: mine.map(function (o) { return [o.rpm, o.meas]; }), marker: 'hollow' });
@@ -1234,4 +1239,5 @@
   if (!ROUTES[location.hash]) history.replaceState(null, '', '#/frf');
   lastRoute = location.hash;
   render();
+  document.documentElement.classList.add('ready');
 })();
