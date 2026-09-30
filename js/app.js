@@ -156,6 +156,20 @@
   function viewFrf() {
     var f = state.frfFile;
     var wrap = el('div');
+    /*
+     * [UI UPDATE v2] 첫 화면만큼은 "무엇을 하는 도구인가"를 즉시 이해할 수 있도록
+     * 기술형 hero 영역을 추가했습니다. 계산 로직/상태 저장과 무관한 표현 계층입니다.
+     */
+    wrap.appendChild(el('section', { class: 'hero-card' },
+      el('div', { class: 'hero-eyebrow' }, 'FRF → RPM RESPONSE ANALYSIS'),
+      el('h2', null, '주파수영역 해석 결과를 RPM 응답으로 바로 연결합니다.'),
+      el('p', null, 'FRF 해석 결과와 차수별 가진력을 입력하면 회전수 변화에 따른 응답 곡선을 빠르게 확인하고, 계측 결과가 있으면 역으로 가진력을 추정할 수 있습니다.'),
+      el('div', { class: 'hero-metrics', 'aria-label': '핵심 기능' },
+        el('div', { class: 'hero-metric' }, el('b', null, 'FRF × Force'), el('span', null, '차수별 응답 계산')),
+        el('div', { class: 'hero-metric' }, el('b', null, 'Order RSS'), el('span', null, 'overall 합성 검토')),
+        el('div', { class: 'hero-metric' }, el('b', null, 'Measured → Force'), el('span', null, '계측 기반 가진력 추정'))
+      )
+    ));
     wrap.appendChild(el('div', { class: 'page-head' }, el('h1', null, '1. FRF 해석 결과 불러오기')));
     wrap.appendChild(steps());
     wrap.appendChild(el('section', { class: 'card' },
@@ -465,7 +479,8 @@
   }
 
   // ── 3. 결과 ─────────────────────────────────────────────────
-  var COLORS = ['#1f77b4', '#d62728', '#2ca02c', '#9467bd', '#ff7f0e', '#17becf', '#8c564b', '#e377c2'];
+  /* UI UPDATE v2 — 결과 그래프의 계열 색을 기술형 팔레트로 통일합니다. 계산값에는 영향이 없습니다. */
+  var COLORS = ['#0a88a8', '#ef7d56', '#6e7ad9', '#16866c', '#c26aab', '#e39b2f', '#6c8191', '#2e6f95'];
   function ensureResult() {
     if (result) return true;
     var c = configFromSettings();

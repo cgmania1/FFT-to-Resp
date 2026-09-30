@@ -3,45 +3,78 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FRF RPM별 응답 계산기</title>
-  <meta name="description" content="단위 가진 FRF 해석 결과 엑셀과 RPM 범위·차수별 가진력으로 RPM별 차수 응답과 RSS overall 을 계산하고, 계측 데이터로 가진력을 추정하는 브라우저 도구(1단계)">
-  <meta name="robots" content="noindex">
+  <title>RPM Response Lab · FRF → RPM 응답 해석 도구</title>
+  <meta name="description" content="FRF 해석 결과와 가진력으로 RPM·차수별 응답을 계산하고, 계측 데이터로 가진력을 추정하는 브라우저 기반 소음·진동 분석 도구입니다.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#071522">
+  <meta property="og:title" content="RPM Response Lab · FRF → RPM 응답 해석 도구">
+  <meta property="og:description" content="FRF × 가진력으로 RPM 응답을 빠르게 검토하고 계측 데이터로 가진력을 추정합니다.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cgmania1.github.io/rpm_resp/">
+  <link rel="canonical" href="https://cgmania1.github.io/rpm_resp/">
+  <!-- 디자인 자산: 외부 서버/아이콘 CDN 의존을 없애기 위해 로컬 SVG 로고를 사용합니다. -->
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+  <!--
+    [UI SHELL]
+    계산 로직과 분리된 서비스 공통 헤더입니다.
+    nav / sampleBtn / clearBtn 의 기존 id·href는 그대로 유지해 기능 호환성을 보장합니다.
+  -->
   <header class="site-header">
     <div class="inner header-inner">
-      <a class="brand" href="#/frf">
-        <span class="brand-name">FRF RPM별 응답 계산기</span>
-        <span class="brand-sub">FRF × 가진력 · 차수별 RSS overall · 가진력 추정</span>
+      <a class="brand" href="#/frf" aria-label="RPM Response Lab 홈">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="assets/logo.svg" alt="">
+        </span>
+        <span class="brand-copy">
+          <span class="brand-kicker">NOISE &amp; VIBRATION · CAE TOOL</span>
+          <span class="brand-name">RPM Response Lab</span>
+          <span class="brand-sub">FRF → RPM · Order Response · Force Estimation</span>
+        </span>
       </a>
-      <nav class="nav" id="nav" aria-label="단계">
+
+      <div class="header-status" aria-label="서비스 상태">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Browser only</span>
+      </div>
+
+      <nav class="nav" id="nav" aria-label="분석 단계">
         <a href="#/frf">1. FRF 불러오기</a>
         <a href="#/calc">2. 계산 조건</a>
         <a href="#/result">3. 결과</a>
         <a href="#/force">4. 가진력 추정</a>
         <a href="#/help">계산 방법</a>
       </nav>
+
       <div class="header-tools">
-        <button type="button" id="sampleBtn" class="btn">예시 데이터 불러오기</button>
-        <button type="button" id="clearBtn" class="btn btn-ghost">모두 지우기</button>
+        <button type="button" id="sampleBtn" class="btn btn-header">예시 데이터</button>
+        <button type="button" id="clearBtn" class="btn btn-header-ghost">모두 지우기</button>
       </div>
     </div>
   </header>
 
-  <div id="sampleBanner" class="sample-banner" hidden>지금 보이는 값은 <strong>예시 데이터</strong>(시연용 가상 값)입니다. 실제 해석·계측 결과가 아닙니다.</div>
+  <div id="sampleBanner" class="sample-banner" hidden>
+    <span class="banner-icon" aria-hidden="true">◆</span>
+    지금 보이는 값은 <strong>예시 데이터</strong>(시연용 가상 값)입니다. 실제 해석·계측 결과가 아닙니다.
+  </div>
   <div id="storeBanner" class="store-banner" hidden></div>
 
   <main id="main" class="inner main" tabindex="-1"></main>
 
   <footer class="site-footer">
-    <div class="inner">1단계 도구 · 파일과 계산 결과는 이 브라우저 안에서만 처리되며 외부로 보내지 않습니다</div>
+    <div class="inner footer-inner">
+      <span>RPM Response Lab · 1단계 분석 도구</span>
+      <span>파일·계산은 브라우저 내부에서만 처리됩니다.</span>
+    </div>
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <!-- 파일(file://)로 열어도 돌도록 module 이 아닌 일반 스크립트로 불러옵니다 -->
+  <!-- file:// 직접 실행도 유지하기 위해 기존의 일반 script 로딩 방식을 그대로 둡니다. -->
   <script src="vendor/xlsx.full.min.js"></script>
   <script src="js/logic.js"></script>
   <script src="js/sample-data.js"></script>
