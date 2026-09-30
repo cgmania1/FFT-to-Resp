@@ -34,7 +34,7 @@
 
 ## 실행 방법
 
-**온라인에서 바로 쓰기: https://aebonlee.github.io/data09-04/**
+**온라인에서 바로 쓰기: https://cgmania1.github.com/FFT-to-Resp**
 
 내 PC에서 쓰려면 설치 없이 아래 두 방법 중 하나로 엽니다.
 
